@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل دخول | Boost Wave</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-container">
+    <h2>تسجيل دخول لوحة التحكم</h2>
+    <input type="password" id="access-code" placeholder="ادخل الكود السري">
+    <button onclick="login()">دخول</button>
+  </div>
+
+  <script>
+    function login() {
+      const code = document.getElementById('access-code').value;
+      if (code === '1111') {
+        localStorage.setItem('dashboardAuth', 'true');
+        window.location.href = 'dashboard.html';
+      } else {
+        alert('الكود غير صحيح');
+      }
+    }
+  </script>
+</body>
+</html>
