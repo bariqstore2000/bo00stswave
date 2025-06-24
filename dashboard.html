@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم | Boost Wave</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>لوحة التحكم</h1>
+
+    <section class="settings">
+      <h2>الإعدادات</h2>
+      <label>رقم Vodafone Cash:</label>
+      <input type="text" id="vodafone-number">
+
+      <label>Discord ID:</label>
+      <input type="text" id="discord-id">
+
+      <label>السعر:</label>
+      <input type="number" id="price">
+
+      <label>رابط صورة الباقة:</label>
+      <input type="text" id="image-url">
+
+      <button onclick="saveSettings()">حفظ الإعدادات</button>
+    </section>
+
+    <section class="orders">
+      <h2>الطلبات الجديدة</h2>
+      <div id="orders-list"></div>
+    </section>
+  </div>
+
+  <script>
+    if (localStorage.getItem('dashboardAuth') !== 'true') {
+      window.location.href = 'login.html';
+    }
+
+    function loadSettings() {
+      fetch('settings.json')
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('vodafone-number').value = data.vodafone_number;
+          document.getElementById('discord-id').value = data.discord_id;
+          document.getElementById('price').value = data.price;
+          document.getElementById('image-url').value = data.image;
+        });
+    }
+
+    function saveSettings() {
+      const settings = {
+        vodafone_number: document.getElementById('vodafone-number').value,
+        discord_id: document.getElementById('discord-id').value,
+        price: document.getElementById('price').value,
+        image: document.getElementById('image-url').value
+      };
+
+      fetch('settings.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      }).then(() => alert('تم حفظ الإعدادات'));
+    }
+
+    function loadOrders() {
+      fetch('orders.json')
+        .then(res => res.json())
+        .then(orders => {
+          const list = document.getElementById('orders-list');
+          list.innerHTML = '';
+          orders.reverse().forEach((order, index) => {
+            if (order.status === 'pending') {
+              const div = document.createElement('div');
+              div.className = 'order-card';
+              div.innerHTML = `
+                <p><strong>رابط السيرفر:</strong> ${order.serverLink}</p>
+                <p><strong>الدفع:</strong> ${order.paymentMethod}</p>
+                <p><strong>رقم التحويل:</strong> ${order.paymentProof}</p>
+                <p><strong>ملاحظات:</strong> ${order.notes || '-'}</p>
+                <button onclick="updateStatus(${index}, 'accepted')">قبول</button>
+                <button onclick="updateStatus(${index}, 'rejected')">رفض</button>
+              `;
+              list.appendChild(div);
+            }
+          });
+        });
+    }
+
+    function updateStatus(index, status) {
+      fetch('orders.json')
+        .then(res => res.json())
+        .then(orders => {
+          orders[index].status = status;
+          return fetch('orders.json', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orders)
+          });
+        })
+        .then(() => {
+          alert('تم تحديث الطلب');
+          loadOrders();
+        });
+    }
+
+    loadSettings();
+    loadOrders();
+  </script>
+</body>
+</html>
