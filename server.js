@@ -9,73 +9,69 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.text());
+app.use(express.static('public')); // مهم: مجلد الملفات
 
-// ✅ قراءة settings
+// ==== إعداد الملفات ====
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/order.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'order.html'));
+});
+
+
+// ==== إعداد البيانات الديناميكية ====
+
 app.get('/settings.json', (req, res) => {
-  fs.readFile('settings.json', 'utf8', (err, data) => {
-    if (err) return res.status(500).send('Error reading settings');
-    res.type('json').send(data);
-  });
+  res.sendFile(path.join(__dirname, 'settings.json'));
 });
 
-// ✅ حفظ settings
 app.put('/settings.json', (req, res) => {
-  fs.writeFile('settings.json', JSON.stringify(req.body, null, 2), (err) => {
-    if (err) return res.status(500).send('Error saving settings');
-    res.send('Settings saved');
-  });
+  fs.writeFileSync('settings.json', JSON.stringify(req.body, null, 2));
+  res.sendStatus(200);
 });
 
-// ✅ قراءة التوكنات
 app.get('/tokens.txt', (req, res) => {
-  fs.readFile('tokens.txt', 'utf8', (err, data) => {
-    if (err) return res.status(500).send('Error reading tokens');
-    res.type('text').send(data);
-  });
+  res.sendFile(path.join(__dirname, 'tokens.txt'));
 });
 
-// ✅ حفظ التوكنات
 app.put('/tokens.txt', (req, res) => {
-  let body = '';
-  req.on('data', chunk => (body += chunk));
-  req.on('end', () => {
-    fs.writeFile('tokens.txt', body, err => {
-      if (err) return res.status(500).send('Error saving tokens');
-      res.send('Tokens saved');
-    });
-  });
+  fs.writeFileSync('tokens.txt', req.body);
+  res.sendStatus(200);
 });
 
-// ✅ قراءة الطلبات
 app.get('/orders.json', (req, res) => {
-  fs.readFile('orders.json', 'utf8', (err, data) => {
-    if (err) return res.status(500).send('Error reading orders');
-    res.type('json').send(data);
-  });
+  res.sendFile(path.join(__dirname, 'orders.json'));
 });
 
-// ✅ حفظ الطلبات
 app.put('/orders.json', (req, res) => {
-  fs.writeFile('orders.json', JSON.stringify(req.body, null, 2), (err) => {
-    if (err) return res.status(500).send('Error saving orders');
-    res.send('Orders updated');
-  });
+  fs.writeFileSync('orders.json', JSON.stringify(req.body, null, 2));
+  res.sendStatus(200);
 });
 
-// ✅ تشغيل سكريبت البوست
+// ==== سكريبت البوست ====
+
 app.post('/run-boost', (req, res) => {
   exec('node boost.js', (error, stdout, stderr) => {
     if (error) {
       console.error(`Error: ${error.message}`);
-      return res.status(500).send('Error running boost script');
+      return res.status(500).send('Boost failed');
     }
-    if (stderr) console.error(`stderr: ${stderr}`);
-    console.log(`stdout: ${stdout}`);
-    res.send('Boost script executed');
+    res.send('Boost done');
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
