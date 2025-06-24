@@ -100,9 +100,16 @@
           });
         })
         .then(() => {
+          if (status === 'accepted') {
+            runBoostScript();
+          }
           alert('تم تحديث الطلب');
           loadOrders();
         });
+    }
+
+    function runBoostScript() {
+      fetch('/run-boost', { method: 'POST' });
     }
 
     loadSettings();
