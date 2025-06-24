@@ -10,49 +10,36 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.text());
-app.use(express.static('public')); // مهم: مجلد الملفات
+app.use(express.static('public')); // لازم يكون فيه مجلد public
 
-// ==== إعداد الملفات ====
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-app.get('/login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
-app.get('/order.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'order.html'));
-});
-
-
-// ==== إعداد البيانات الديناميكية ====
-
-app.get('/settings.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'settings.json'));
-});
-
+// ✅ تحديث الإعدادات
 app.put('/settings.json', (req, res) => {
   fs.writeFileSync('settings.json', JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
 
-app.get('/tokens.txt', (req, res) => {
-  res.sendFile(path.join(__dirname, 'tokens.txt'));
+// ✅ استرجاع الإعدادات
+app.get('/settings.json', (req, res) => {
+  const data = fs.readFileSync('settings.json', 'utf8');
+  res.type('json').send(data);
 });
 
+// ✅ حفظ التوكنات
 app.put('/tokens.txt', (req, res) => {
   fs.writeFileSync('tokens.txt', req.body);
   res.sendStatus(200);
 });
 
+// ✅ جلب التوكنات
+app.get('/tokens.txt', (req, res) => {
+  const tokens = fs.readFileSync('tokens.txt', 'utf8');
+  res.type('text').send(tokens);
+});
+
+// ✅ الطلبات
 app.get('/orders.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'orders.json'));
+  const data = fs.readFileSync('orders.json', 'utf8');
+  res.type('json').send(data);
 });
 
 app.put('/orders.json', (req, res) => {
@@ -60,15 +47,15 @@ app.put('/orders.json', (req, res) => {
   res.sendStatus(200);
 });
 
-// ==== سكريبت البوست ====
-
+// ✅ تشغيل سكريبت البوستات
 app.post('/run-boost', (req, res) => {
-  exec('node boost.js', (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error: ${error.message}`);
-      return res.status(500).send('Boost failed');
+  exec('node boost.js', (err, stdout, stderr) => {
+    if (err) {
+      console.error(stderr);
+      return res.status(500).send('Error');
     }
-    res.send('Boost done');
+    console.log(stdout);
+    res.sendStatus(200);
   });
 });
 
