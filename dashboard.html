@@ -27,6 +27,12 @@
       <button onclick="saveSettings()">حفظ الإعدادات</button>
     </section>
 
+    <section class="tokens">
+      <h2>إدارة التوكنات</h2>
+      <textarea id="tokens-input" rows="10" placeholder="اكتب كل توكن في سطر"></textarea>
+      <button onclick="saveTokens()">حفظ التوكنات</button>
+    </section>
+
     <section class="orders">
       <h2>الطلبات الجديدة</h2>
       <div id="orders-list"></div>
@@ -62,6 +68,23 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       }).then(() => alert('تم حفظ الإعدادات'));
+    }
+
+    function loadTokens() {
+      fetch('tokens.txt')
+        .then(res => res.text())
+        .then(tokens => {
+          document.getElementById('tokens-input').value = tokens;
+        });
+    }
+
+    function saveTokens() {
+      const content = document.getElementById('tokens-input').value;
+      fetch('tokens.txt', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/plain' },
+        body: content
+      }).then(() => alert('تم حفظ التوكنات'));
     }
 
     function loadOrders() {
@@ -114,6 +137,7 @@
 
     loadSettings();
     loadOrders();
+    loadTokens();
   </script>
 </body>
 </html>
